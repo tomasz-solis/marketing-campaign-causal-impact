@@ -268,7 +268,7 @@ def plot_covariate_balance(balance_df, title="Covariate Balance Check"):
         xaxis_title="Absolute % Difference",
         yaxis_title="Covariate",
         template='plotly_white',
-        height=400,
+        height=500,
         showlegend=False
     )
     
