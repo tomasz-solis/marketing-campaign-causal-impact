@@ -1,150 +1,135 @@
-# Marketing Campaign Causal Impact: A Difference-in-Differences Analysis
+# Did the 2008 Crisis Make People Want Term Deposits? A Learning Project
 
-**Estimating the causal effect of macroeconomic conditions on customer subscription rates using the 2008 financial crisis as a natural experiment**
-
----
-
-## 🎯 Project Overview
-
-This project applies **Difference-in-Differences (DiD)** methodology to estimate how economic shocks affect consumer financial decisions. Using the UCI Bank Marketing dataset, I exploit the 2008 financial crisis as a natural experiment to identify the causal effect of macroeconomic conditions on term deposit subscriptions.
-
-**Core Question:** Did customers subscribe to term deposits *because of* deteriorating economic conditions (flight to safety), or were they already predisposed to subscribe?
-
-**Why This Matters:** In product analytics and customer targeting (e.g., ICP scoring, feature launches), distinguishing selection effects from true causal effects is critical for resource allocation and strategic decision-making.
+**Using the financial crisis as a natural experiment to learn causal inference**
 
 ---
 
-## Dataset
+## 🎯 What I'm Trying to Figure Out
 
-- **Source:** [UCI Machine Learning Repository - Bank Marketing](https://archive.ics.uci.edu/dataset/222/bank+marketing)
-- **Observations:** 41,188 customer contact events from a Portuguese bank
-- **Time Period:** May 2008 - November 2010
-- **Outcome:** Binary - Customer subscribed to term deposit (yes/no)
-- **Features:** 
-  - Customer demographics (age, job, education, marital status)
-  - Contact history (campaign intensity, days since last contact, previous campaigns)
-  - Economic indicators (employment variation rate, consumer price index, consumer confidence, Euribor 3-month rate, number employed)
-  - Campaign timing (contact date, month, day of week)
+Did customers subscribe to term deposits *because of* the financial crisis (flight to safety), or were they just going to subscribe anyway?
+
+This might seem like a banking question, but it's really about learning **causal inference** - a skill I need for product analytics work at Pleo, especially for evaluating ICP scoring and feature launches.
+
+**The Big Challenge:** People weren't randomly assigned to crisis vs no-crisis. So how do I know if the crisis *caused* behavior change, or if customers were just different to begin with?
 
 ---
 
-## Methodology
+## The Dataset
 
-### **Causal Identification Strategy: Difference-in-Differences**
+**Source:** [UCI Bank Marketing Dataset](https://archive.ics.uci.edu/dataset/222/bank+marketing)
+- 41,188 phone calls from a Portuguese bank
+- May 2008 - November 2010
+- Goal: Get customers to subscribe to term deposits
+- Includes: customer demographics, economic indicators, contact history
 
-**Natural Experiment:** The 2008 global financial crisis created an exogenous shock to economic conditions between two marketing campaign waves.
-
-**Treatment Definition:**
-- **Wave 1 (Control):** Customers contacted May-August 2008 (pre-crisis)
-- **Wave 2 (Treatment):** Customers contacted April-August 2009 (crisis recovery)
-
-**Key Features:**
-1. **Clean temporal separation:** 8-month gap with minimal marketing activity (September 2008-March 2009)
-2. **Dramatic economic divergence:**
-   - Employment variation rate: +1.3% → -1.9% 
-   - Euribor 3-month rate: 4.9% → 1.3%
-   - Consumer confidence index: -38.9 → -45.8
-   - Employment level: 5,211k → 5,097k
-
-**Sample Restriction:** Analysis limited to **first-time contacts only** (customers with no prior marketing exposure) to ensure clean comparison and eliminate selection bias from relationship history.
-- Final sample: **9,125 customers** (7,475 Wave 1, 1,650 Wave 2)
+**The Opportunity:** The 2008 financial crisis happened RIGHT IN THE MIDDLE of their campaign! This creates a "natural experiment" I can use for causal analysis.
 
 ---
 
-## Key Findings
+## My Approach: Difference-in-Differences
 
-### **1. Causal Effect: +11.78 Percentage Points**
+**The Natural Experiment:**
 
-**DiD Estimation Results (Notebook 03):**
+| Period | When | Economic Conditions | What I Call It |
+|--------|------|-------------------|----------------|
+| **Wave 1** | May-Aug 2008 | Pre-crisis, normal times | Control group |
+| **Wave 2** | Apr-Aug 2009 | During crisis recovery | Treatment group |
 
-| Specification | Wave 2 Effect | Std Error | R² | Controls |
-|---------------|---------------|-----------|-----|----------|
-| **Model 1:** Baseline | +12.46pp*** | 0.0066 | 0.037 | None |
-| **Model 2:** + Campaign | +12.34pp*** | 0.0067 | 0.038 | Campaign intensity |
-| **Model 3:** + Demographics | **+11.78pp***✓ | 0.0068 | 0.044 | Campaign + demographics |
+**The Logic:**
+- Compare subscription rates before vs after crisis
+- But also account for natural time trends
+- DiD = (Wave 2 late - Wave 2 early) - (Wave 1 late - Wave 1 early)
 
-***p < 0.001  
-✓ Preferred specification
-
-**Interpretation:**
-- Being contacted during crisis recovery (vs pre-crisis) causally increased subscription probability by **11.78 percentage points**
-- This represents a **268% increase** over the baseline rate of 4.4%
-- 95% Confidence Interval: [10.45pp, 13.11pp]
-
-**Coefficient Stability:**
-- Estimate changed only -5.5% across specifications (12.46pp → 11.78pp)
-- Indicates **minimal selection bias** — Wave 1 and Wave 2 customers are comparable on observables
-- Effect is robust to controlling for demographics and campaign intensity
-
-**Why Model 3 is Preferred:**
-- Controls for potential confounders (age, job, education, marital status, campaign intensity)
-- Does NOT over-control for mediators (economic indicators cause multicollinearity: r > 0.99 with wave_2)
-- Captures **total causal effect** operating through economic channels
+**What Made This Work:**
+- 8-month gap between waves (clean separation)
+- Huge economic shock:
+  - Interest rates: 4.9% → 1.3% (73% drop!)
+  - Jobs: +1.3% growth → -1.9% decline (114k lost)
+  - Consumer confidence: -38.9 → -45.8
 
 ---
 
-### **2. Economic Mechanism: "Flight to Safety"**
+## What I Learned (The Journey)
 
-The causal effect operates through three economic channels:
+### **Challenge 1: No Customer IDs!**
+The dataset had 41,188 contacts but no way to tell which contacts were the same person.
 
-**1. Interest Rate Channel (Primary)**
-- Euribor 3-month rate collapsed 73%: 4.91% → 1.32%
-- Lower rates made term deposits more attractive relative to other safe assets
-- When market returns crashed, guaranteed returns became appealing
+**My Solution:** Created "pseudo-IDs" using demographics (age, job, education, marital status, etc.)
+- Identified ~14,000 unique customers
+- About 3 contacts per customer on average
 
-**2. Risk Aversion Channel**
-- Employment variation rate: +1.26% (growth) → -1.91% (recession)
-- Consumer confidence deteriorated: -38.9 → -45.8
-- Job losses (114,000) created existential uncertainty
-- Customers sought capital preservation over risky investments
+**What I Learned:** Sometimes you have to be creative with messy data!
 
-**3. Wealth Protection**
-- Financial crisis created market volatility
-- Term deposits offered stability and guaranteed returns
-- Risk-averse behavior intensified during uncertainty
+### **Challenge 2: People Were Contacted Multiple Times**
+Some customers were contacted in both waves - this creates "contamination."
 
-**Evidence:**
-- Economic indicators are near-perfectly correlated with wave_2 (r = -0.99 for euribor3m, r = -0.99 for emp.var.rate)
-- This confirms economic shock IS the treatment mechanism
-- Cannot statistically separate "wave effect" from "economic effect" — they are observationally equivalent
+**My Solution:** Excluded cross-wave customers (kept only single-wave)
+- Lost 18% of data, but gained clean comparison
+- Better to have smaller, cleaner sample
 
----
+**What I Learned:** Sometimes you SHOULD throw away data to get causal clarity!
 
-### **3. Massive Subscription Rate Increase During Crisis**
+### **Challenge 3: Which Customers to Include?**
+Initial dataset had customers with prior contact history - not comparable.
 
-| Wave | Time Period | N Customers | Subscription Rate | Economic Context |
-|------|-------------|-------------|-------------------|------------------|
-| **Wave 1** | May-Aug 2008 | 7,475 | **4.4%** | Pre-crisis, high interest rates |
-| **Wave 2** | Apr-Aug 2009 | 1,650 | **16.8%** | Crisis recovery, rock-bottom rates |
+**My Solution:** Restricted to **first-time contacts only** (previous=0, pdays=999)
+- Final sample: 9,125 customers (7,475 Wave 1, 1,650 Wave 2)
 
-**Naive difference: +12.5 percentage points (+284% relative increase)**
+**What I Learned:** Sample restrictions are crucial for causal inference!
 
 ---
 
-### **4. Data Structure Insights**
+## What I Found
 
-**Challenge:** No explicit customer IDs in dataset.
+### **Main Result: ~11pp Increase (250% jump!)**
 
-**Solution:** Created pseudo-customer ID using stable demographics:
-- Age, job, marital status, education, housing status, loan status, contact method
-- Identified **14,010 unique customers** from 41,188 contact events (~3 contacts per customer)
+I built up my analysis step by step:
 
-**Sample Selection:**
-- Total customers in analysis waves: 11,970
-- Single-wave customers: 9,858 (82%)
-- Cross-wave contamination: 2,112 (18%) - **excluded to ensure clean comparison**
+| Model | Wave 2 Effect | What I Added | Why |
+|-------|---------------|--------------|-----|
+| **Model 1** | 12.5pp | Nothing (just difference) | Baseline |
+| **Model 2** | 12.3pp | Campaign intensity | Control for targeting |
+| **Model 3** | 11.8pp | + Demographics | Control for who they called |
+| **Model 4** | **10.9pp** ✓ | + Month controls | **Final - adjusted for time trend** |
 
-**Prior Contact Analysis:**
-- Wave 1: 100% fresh prospects (no prior contact)
-- Wave 2: 69% fresh prospects, 31% had previous contact history
-- Customers with prior contact converted at 12.6% (vs 16.8% for fresh prospects)
-- **Key decision:** Restrict to fresh prospects only (previous=0, pdays=999) to ensure apples-to-apples comparison
+**What I Discovered Through Testing:**
 
-**Covariate Balance:**
-- Age difference: 1.5 years (3.5% — well balanced ✓)
-- Campaign intensity: 21% difference (controlled in regression)
-- Demographics (job, marital, education): similar distributions
-- Economic indicators: PERFECT divergence (good for DiD!) ✓
+1. **Time Trend Issue:** Found through placebo test that Wave 1 had an upward trend
+   - Subscription rates went from 3% → 6% even before crisis
+   - Had to control for month to remove this bias
+   - Adjusted estimate from 11.8pp to 10.9pp
+
+2. **Sample Sensitivity:** Effect varies by customer type
+   - Fresh prospects only: 10.9pp
+   - Including dormant customers: 9.5pp
+   - Difference is modest (13%) - effect is robust!
+
+**Final Answer:** The crisis increased subscriptions by about **11 percentage points** among first-time contacts - that's a **250% increase!**
+
+---
+
+## The "Aha!" Moments
+
+### **Finding #1: Placebo Test Revealed a Problem**
+When I split Wave 1 into early vs late, I found a significant "effect" - but both periods were pre-crisis! This revealed a time trend I hadn't expected.
+
+**What I Did:** Added month controls to remove the trend. Estimate dropped from 11.8pp to 10.9pp.
+
+**What I Learned:** Always run placebo tests! They find issues you didn't know existed.
+
+### **Finding #2: Multicollinearity is Actually Good Here**
+I tried adding economic indicators (interest rates, employment) as controls, but they were TOO correlated with wave_2 (r > 0.99).
+
+**What I Realized:** This isn't a bug - it's a feature! The economic shock IS the treatment. Can't separate them because they're the same thing.
+
+**What I Learned:** Sometimes you CAN'T add controls, and that's okay!
+
+### **Finding #3: Effect is Robust**
+Worried my result depended on sample choices, I tested including dormant customers.
+
+**What I Found:** Effect only dropped from 10.9pp to 9.5pp (13% smaller) - still huge!
+
+**What I Learned:** When your result holds up across different samples, that's reassuring!
 
 ---
 
@@ -152,168 +137,178 @@ The causal effect operates through three economic channels:
 
 ```
 marketing-campaign-causal-impact/
-├── README.md                           # This file
-├── requirements.txt                    # Python dependencies
-├── data/
-│   ├── raw/
-│   │   └── bank-additional-full.csv   # Original UCI dataset
-│   └── processed/
-│       ├── data_with_waves.csv        # Customer-level with wave assignments
-│       └── analysis_sample.csv        # Clean analysis dataset (fresh prospects only)
 ├── notebooks/
-│   ├── 01_exploration.ipynb           # Data exploration, economic indicators, time series
-│   ├── 02_treatment_design.ipynb      # Sample selection, covariate balance, treatment validation
-│   └── 03_did_analysis.ipynb          # DiD estimation (Models 1-3), robustness checks [IN PROGRESS]
-├── src/
-│   └── utils.py                       # Helper functions (date reconstruction, pseudo-ID creation)
-└── outputs/
-    └── figures/                       # 9 publication-ready Plotly visualizations
-        ├── 01_daily_contact_volume.png
-        ├── 02_economic_indicators.png
-        ├── 03_monthly_subscription_rates.png
-        ├── 04_contact_intensity_distribution.png
-        ├── 05_customer_demographics_distribution.png
-        ├── 06_customer_characteristics_balance.png
-        ├── 07_economic_indicators.png
-        ├── 08_subscription_rates_fresh_prospects.png
-        └── 09_subscription_rates_naive_comparison.png
+│   ├── 00_wip.ipynb                   # Random explorations, unstructured, messy
+│   ├── 01_exploration.ipynb           # Understanding the data
+│   ├── 02_treatment_design.ipynb      # Sample selection & validation
+│   └── 03_did_analysis.ipynb          # DiD estimation (Sections 1-6.4 done)
+├── data/
+│   ├── raw/bank-additional-full.csv
+│   └── processed/
+│       ├── data_with_waves.csv        # With wave assignments
+│       └── analysis_sample.csv        # Clean sample (9,125 customers)
+├── outputs/
+│   └── figures/                       # visualizations
+└── src/
+    └── utils.py                       # Helper functions
 ```
 
 ---
 
-## Environment Setup
+## Current Progress
+
+### **Completed (Notebook 03, Sections 1-6.4)**
+
+**Section 1-2:** Load data and calculate naive difference
+- Simple before/after comparison: 12.5pp
+
+**Section 3:** Build regression models progressively
+- Model 1: Baseline (12.5pp)
+- Model 2: + Campaign (12.3pp)
+- Model 3: + Demographics (11.8pp)
+- Model 4: + Month (10.9pp) ✓
+
+**Section 4:** Interpretation
+- "Flight to safety" mechanism
+- Interest rate channel + risk aversion
+
+**Section 5:** Robustness checks
+- Sample sensitivity: Fresh (10.9pp) vs Including dormant (9.5pp)
+- Exclude May 2008: Effect holds
+
+**Section 6:** Placebo tests & investigation
+- Found time trend in Wave 1
+- Investigated with visualizations
+- Adjusted for time trend
+- Discussed sample sensitivity
+
+---
+
+## Key Lessons
+
+1. **Natural experiments exist in product data**
+   - Feature launches, pricing changes, external shocks
+   - Look for "before/after" opportunities with clean separation
+
+2. **Sample restrictions are your friend**
+   - Better small & clean than large & messy
+   - Think carefully about who to include
+
+3. **Check for time trends!**
+   - Placebo tests revealed issues I wouldn't have found otherwise
+   - Don't assume parallel trends - test them
+
+4. **Not all controls are good controls**
+   - Mediators vs confounders matter
+   - Sometimes multicollinearity tells you something important
+
+5. **Robustness checking builds confidence**
+   - Test different samples
+   - Test different specifications
+   - If result holds up, you can trust it more
+
+6. **Finding problems is good science**
+   - I found a time trend and adjusted for it
+   - This makes the analysis stronger, not weaker
+   - Honesty > perfection
+
+---
+
+## Visualizations Created
+
+1. Daily contact volume
+2. Economic indicators over time
+3. Monthly subscription rates
+4. Contact intensity distribution
+5. Customer demographics
+6. Covariate balance check
+7. Economic divergence (Wave 1 vs Wave 2)
+8. Subscription rates (fresh prospects)
+9. Naive comparison (before/after)
+10. Multicollinearity visualization
+11. DiD estimate stability
+12. Sample sensitivity comparison
+13. Monthly rate trends
+14. Final sample sensitivity
+
+---
+
+## How to Run This
 
 ```bash
-# Clone repository
+# Clone and setup
 git clone https://github.com/tomasz-solis/marketing-campaign-causal-impact.git
 cd marketing-campaign-causal-impact
-
-# Install dependencies
 pip install -r requirements.txt
 
 # Run notebooks in order
 jupyter notebook notebooks/01_exploration.ipynb
+jupyter notebook notebooks/02_treatment_design.ipynb
+jupyter notebook notebooks/03_did_analysis.ipynb
 ```
 
-**Key Dependencies:**
-- `pandas`, `numpy`: Data manipulation
-- `plotly`: Interactive visualizations
-- `statsmodels`: Regression analysis and DiD estimation
-- `scipy`: Statistical tests
+**Dependencies:** requirements.txt
 
 ---
 
-## Progress & Next Steps
+## Honest Limitations
 
-### ✅ **Completed (Notebooks 01-03, Sections 1-3)**
-1. ✅ Data exploration and economic indicator analysis
-2. ✅ Natural experiment identification (2008 crisis as shock)
-3. ✅ Customer ID creation from demographics (pseudo_id)
-4. ✅ Sample restriction (fresh prospects only, single-wave customers)
-5. ✅ Covariate balance validation
-6. ✅ DiD estimation (Models 1-3)
-7. ✅ Coefficient stability analysis
-8. ✅ 9 visualizations
+**What I CAN claim:**
+- ✅ Strong evidence for causal effect (~11pp)
+- ✅ Effect is robust to sample definition
+- ✅ "Flight to safety" mechanism is plausible
+- ✅ Methodology is rigorous
 
-### ⏳ **In Progress (Notebook 03, Sections 4-11)**
-1. ⏳ Robustness checks:
-   - Include long-dormant customers (pdays=999, previous>0)
-   - Contact-level analysis with clustered standard errors
-   - Alternative wave boundaries (sensitivity analysis)
-   - Exclude May 2008 (campaign ramp-up)
-2. ⏳ Placebo tests:
-   - Fake treatment dates (within Wave 1)
-   - Placebo outcomes (age, pre-determined variables)
-3. ⏳ Heterogeneous treatment effects:
-   - By age group (young vs middle vs senior)
-   - By job type (white collar vs blue collar)
-4. ⏳ Mechanism exploration (which economic indicator matters most?)
-5. ⏳ Final interpretation and business implications
+**What I CANNOT claim:**
+- ❌ Would this work in other countries? (Dataset for Portugal)
+- ❌ Would this work for other crises? (Only studied 2008)
+- ❌ Long-term effects? (Only observed subscription, not retention)
+- ❌ Exact mechanism split? (Can't separate interest rate vs job loss effects)
 
-### **Future Enhancements**
-- Section 12: Regression Discontinuity Design (RDD) using campaign intensity threshold
-- Panel data methods (if repeated observations per customer)
-- Synthetic control method (if comparing regions)
-- Causal forests for heterogeneous effect estimation
+**Why this matters:** Being honest about what you don't know is just as important as being confident about what you do know!
 
 ---
 
-## Learning Objectives
+## About Me
 
-This project demonstrates practical application of causal inference techniques relevant to product analytics:
+**Tomasz Solis** | Senior Product Data Analyst at Pleo
 
-1. **Identifying natural experiments** in observational data
-2. **Handling messy data structures** (no customer IDs, repeated contacts, cross-contamination)
-3. **Sample restriction decisions** (when to lose data to gain causal clarity)
-4. **Validating DiD assumptions** (covariate balance, parallel trends logic)
-5. **Addressing confounding** through regression controls
-6. **Transparent documentation** of design decisions and limitations
+I'm learning causal inference to apply to product analytics challenges - specifically evaluating ICP scoring effectiveness where randomized experiments aren't possible.
 
----
+This project is my learning journey, not a demonstration of expertise. I'm documenting what I discover, including mistakes and corrections, because that's how real analysis works!
 
-## Business Implications
-
-### **For Financial Services:**
-1. **Counter-cyclical marketing opportunity:** Economic downturns may INCREASE demand for safe products
-2. **Timing matters:** Campaign ROI can vary 3x based on macroeconomic context
-3. **Risk-averse messaging:** More effective during uncertain times
-4. **Product positioning:** Emphasize capital preservation during volatility
-
-### **For SaaS/Product Analytics:**
-1. **ICP scoring evaluation:** Need cross-sectional variation to avoid confounding with time
-2. **Feature launch timing:** Macroeconomic context affects adoption rates
-3. **Customer targeting:** Selection into treatment (high ICP score) may be confounded with outcomes
-4. **A/B testing limitations:** When can't randomize, quasi-experiments (DiD, RDD) are alternatives
+- [tomasz.solis@gmail.com](mailto:tomasz.solis@gmail.com)
+- [LinkedIn](https://www.linkedin.com/in/tomaszsolis/)
+- [GitHub](https://github.com/tomasz-solis)
 
 ---
 
-## 👤 Author
+## What I'm Learning From
 
-**Tomasz Solis** | Senior Product Data Analyst  
-Building causal inference skills for application to SaaS product analytics and ICP scoring projects at Pleo.
-
-- Email: [tomasz.solis@gmail.com](mailto:tomasz.solis@gmail.com)
-- LinkedIn: [linkedin.com/in/tomaszsolis](https://www.linkedin.com/in/tomaszsolis/)
-- GitHub: [github.com/tomasz-solis](https://github.com/tomasz-solis)
-
----
-
-## 📚 References
+**Books:**
+- Scott Cunningham - *Causal Inference: The Mixtape*
+- Matheus Facure - *Causal Inference in Python*
 
 **Dataset:**
-- Moro, S., Cortez, P., & Rita, P. (2014). A data-driven approach to predict the success of bank telemarketing. *Decision Support Systems*, 62, 22-31.
-
-**Causal Inference Methodology:**
-- Angrist, J. D., & Pischke, J. S. (2009). *Mostly Harmless Econometrics*. Princeton University Press.
-- Cunningham, S. (2021). *Causal Inference: The Mixtape*. Yale University Press.
-- Huntington-Klein, N. (2021). *The Effect: An Introduction to Research Design and Causality*. Chapman and Hall/CRC.
-
-**DiD Implementation:**
-- Difference-in-Differences estimation with repeated cross-sections
-- Linear probability model (OLS on binary outcome) with heteroskedasticity-robust standard errors
-- Covariate balance checks and specification sensitivity analysis
-
----
-
-## License
-
-This project is for educational and portfolio purposes. Dataset sourced from UCI Machine Learning Repository under their usage terms.
+- Moro, Cortez, & Rita (2014) - UCI Bank Marketing dataset
 
 ---
 
 ## Project Status
 
-**Current Status:** 🟡 **In Progress** (60% complete)
-- ✅ Notebooks 01-02: Complete and documented
-- 🟡 Notebook 03: Core DiD analysis complete (Models 1-3), robustness checks in progress
-- ⏳ Final documentation: Pending
+**Status:** **In progress**
+
+- ✅ Notebooks 01-02: Complete
+- ⏳ Notebook 03: Sections 1-6.4 complete
+- ⏳ Final polish: Pending
 
 ---
 
-## Quick Results Summary
+## Quick Summary
 
-> **TL;DR:** Using the 2008 financial crisis as a natural experiment, I estimated that being contacted during crisis recovery (vs pre-crisis) causally increased term deposit subscription rates by **11.78 percentage points** (a 268% increase), operating primarily through interest rate effects and risk-averse customer behavior. The analysis handles messy observational data through careful sample restriction, validates DiD assumptions via covariate balance checks, and demonstrates coefficient stability across specifications, providing strong evidence for causal interpretation.
+> I used the 2008 financial crisis as a natural experiment to estimate whether the crisis causally affected term deposit subscriptions. After careful sample selection, progressive model building, and rigorous robustness checking (including finding and correcting for a time trend), I estimated the crisis increased subscription rates by approximately **11 percentage points** (a 250% increase) among first-time banking prospects. The effect operates through "flight to safety" - when interest rates crashed and jobs disappeared, people sought guaranteed returns. This project taught me how to handle messy observational data, test assumptions rigorously, and communicate findings honestly - skills I need for product analytics at Pleo.
 
 ---
 
-**Last Updated**: November 21, 2025
+**Last Updated:** November 24, 2025  <br>
+**Current Stage:** Completing robustness checks and preparing final summary
