@@ -1,0 +1,9 @@
+Model,Effect_pp,Std_Error,Controls
+"Model 1
+(Baseline)",12.46,0.66,None
+"Model 2
+(+ Campaign)",12.34,0.67,Campaign
+"Model 3
+(+ Demographics)",11.78,0.68,Campaign + Demographics
+"Model 4
+(+ Month)",11.77802076488915,0.6776682119569422,Campaign + Demographics + Month

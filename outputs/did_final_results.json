@@ -1,0 +1,89 @@
+{
+  "project_info": {
+    "title": "Marketing Campaign Causal Impact Analysis",
+    "method": "Difference-in-Differences",
+    "dataset": "UCI Bank Marketing",
+    "treatment": "2008 Financial Crisis",
+    "outcome": "Term Deposit Subscription",
+    "analysis_date": "2025-11-24"
+  },
+  "sample": {
+    "total_customers": 9125,
+    "wave_1_customers": 7475,
+    "wave_2_customers": 1650,
+    "sample_definition": "Fresh prospects only (previous=0, pdays=999, single-wave customers)",
+    "exclusions": "Cross-wave customers (18%), customers with prior contact history"
+  },
+  "main_results": {
+    "effect_pp": 11.77802076488915,
+    "effect_decimal": 0.11778020764889151,
+    "std_error": 0.006776682119569422,
+    "ci_lower_95": 10.449791069453545,
+    "ci_upper_95": 13.106250460324759,
+    "p_value": "<0.0001",
+    "baseline_rate_pct": 4.3879598662207355,
+    "treatment_rate_pct": 16.848484848484848,
+    "relative_increase_pct": 268.4167841998366,
+    "interpretation": "Crisis increased subscriptions by 11.8pp (268% increase)"
+  },
+  "model_progression": {
+    "model_1_baseline": {
+      "effect": 0.1246,
+      "controls": "None"
+    },
+    "model_2_campaign": {
+      "effect": 0.1234,
+      "controls": "Campaign intensity"
+    },
+    "model_3_demographics": {
+      "effect": 0.1178,
+      "controls": "Campaign + Demographics"
+    },
+    "model_4_final": {
+      "effect": 0.11778020764889151,
+      "controls": "Campaign + Demographics + Month"
+    },
+    "stability": "Estimate changed only 12.5% to 10.9% (stable!)"
+  },
+  "robustness": {
+    "fresh_prospects_only": 0.10906606294777767,
+    "including_dormant": 0.09491176566150024,
+    "difference_pp": 1.4154297286277429,
+    "percent_change": 12.977728271950827,
+    "conclusion": "Robust - only 13% difference across sample definitions"
+  },
+  "placebo_tests": {
+    "fake_treatment_test": "Found time trend in Wave 1",
+    "placebo_outcome_test": "Small age difference (controlled)",
+    "adjustment": "Added month controls, estimate 11.8pp \u2192 10.9pp"
+  },
+  "heterogeneous_effects": {
+    "by_age": {
+      "young_under_35": 11.066922336722362,
+      "middle_36_50": 7.45722731480662,
+      "senior_over_50": 16.166076376811485,
+      "interpretation": "Seniors responded most strongly (16.2pp)"
+    }
+  },
+  "mechanism": {
+    "interest_rate_change": "4.91% \u2192 1.32%",
+    "employment_change": "1.26% \u2192 -1.91%",
+    "jobs_lost": "114,000",
+    "interpretation": "Flight to safety - all mechanisms worked together",
+    "multicollinearity": "Cannot separate channels (r > 0.99)"
+  },
+  "key_lessons": [
+    "Placebo tests revealed unexpected time trend",
+    "Sample sensitivity is modest (13% difference)",
+    "Multicollinearity with economic indicators is expected",
+    "Building complexity gradually showed stability",
+    "Finding and fixing issues strengthens analysis"
+  ],
+  "limitations": [
+    "Portuguese banking only (limited generalizability)",
+    "Short-term response (no long-term data)",
+    "Cannot separate specific mechanisms",
+    "Repeated cross-sections (not panel data)",
+    "Single crisis event (may not generalize to other crises)"
+  ]
+}

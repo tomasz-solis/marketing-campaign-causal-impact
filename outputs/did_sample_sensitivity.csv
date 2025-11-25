@@ -1,0 +1,5 @@
+Sample,N_Customers,Effect_pp,Interpretation
+"Fresh Prospects
+(previous=0)",9125,10.906606294777767,Main analysis sample
+"Fresh + Dormant
+(any previous)",9825,9.491176566150024,Robustness check
